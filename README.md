@@ -48,10 +48,8 @@ For more detailed setup instructions, including Python SDK usage, please refer t
 
 Dive deeper into Orquestra's architecture, algorithms, and validation:
 
-*   📄 **[Conceptual Foundations & Framework (TECHNICAL_PAPER.md)](./TECHNICAL_PAPER.md)**: Understand the high-level design and mathematical basis of Orquestra.
 *   ⚙️ **[Detailed Algorithmic Analysis (ALGORITHMS_DETAILED.md)](./ALGORITHMS_DETAILED.md)**: Explore the specific algorithms used for resource estimation.
 *   🛡️ **[Validation & Benchmarking Framework (VALIDATION_FRAMEWORK.md)](./VALIDATION_FRAMEWORK.md)**: Learn about our strategies for ensuring accuracy and reliability.
-*   💡 **[Phase 1 Strategy & Vision (PHASE1_STRATEGY.md)](./PHASE1_STRATEGY.md)**: Discover our open-source launch plan and future goals.
 
 ## 🐍 Python SDK
 
