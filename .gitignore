@@ -1,0 +1,153 @@
+# Orquestra Project .gitignore
+
+# General
+.DS_Store
+*.log
+*.log.*
+temp/
+tmp/
+
+# Node.js / npm / yarn / pnpm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
+dist/ # Common for JS build outputs, Vite uses this by default for library mode
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.eslintcache
+.vite/
+# For Next.js if ever used with Tauri: .next/
+
+# Rust / Cargo
+# Ignore Cargo.lock for now as requested. For reproducible binary builds,
+# this (and the one in src-tauri) might be committed.
+Cargo.lock
+target/
+# If you have examples or benches in the root, their target dirs:
+# examples/target/
+# benches/target/
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock # Same as above, often committed for Tauri apps
+src-tauri/gen/ # Generated icons, etc.
+src-tauri/bin/ # Compiled binaries before packaging
+src-tauri/bundle/ # Packaged application bundles
+src-tauri/debian/ # Debian packaging files
+src-tauri/rpm/ # RPM packaging files
+src-tauri/msi/ # MSI packaging files
+src-tauri/appimage/ # AppImage packaging files
+*.app/
+*.AppImage
+*.dmg
+*.exe
+*.msi
+*.deb
+*.rpm
+*.snap
+*.flatpak
+# Add other specific Tauri build artifacts if they appear
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+# dist/ # Already covered by Node.js section, but good to have in Python section too for clarity
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+# Test & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+virtualenv/
+.virtualenv/
+python-env/
+.python-env/
+# Mypy & Ruff cache
+.mypy_cache/
+.ruff_cache/
+# Tox & Nox
+.tox/
+.nox/
+# IPython
+profile_default/
+ipython_config.py
+
+# IDE / Editor specific
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sublime-workspace
+*.sublime-project
+*.komodoproject
+# Vim
+*.swp
+*~
+*.bak
+*.swo
+
+# OS Specific
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+# Thumbnails
+._*
+# Files that might appear in the root of a volume
+.Spotlight-V100
+.Trashes
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# Linux
+*~
+# KDE
+.directory
+
+# Tauri specific logs if any
+# Might be in $APPCONFIG/logs/ if logging is enabled
+# Example: $HOME/.config/orquestra-qre/logs/
+
+# If using specific tools like Storybook, add their ignores:
+# storybook-static/
+
+# Generated documentation (e.g., Sphinx, Docusaurus)
+# docs/_build/
+# .docusaurus/
+# build-docs/
+
+# Ensure this file itself is not ignored if it's in a subdirectory that's ignored
+# !.gitignore

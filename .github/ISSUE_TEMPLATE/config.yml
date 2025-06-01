@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ❓ Questions & General Discussion
+    url: https://github.com/orquestra-ai/orquestra-qre/discussions # Conceptual: Link to GitHub Discussions
+    about: Please ask and answer questions here. This is the best place for general discussion, ideas, and help.
+  - name: 💬 Community Chat (Future)
+    url: "#" # Placeholder: Replace with actual link if a Discord/Slack is created
+    about: Join our community chat for real-time discussions, support, and collaboration (Link to be provided when available).

@@ -1,0 +1,70 @@
+name: 🚀 Feature Request
+description: Suggest an idea or enhancement for Orquestra
+title: "[FEAT] <Short description of the feature>"
+labels: ["enhancement", "needs-discussion"]
+assignees:
+  - # Add GitHub usernames of maintainers here if desired, e.g., orquestra-ai-bot
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an idea to improve Orquestra! 
+        Please provide as much detail as possible to help us understand and evaluate your proposal.
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: "Is your feature request related to a problem? Please describe it. What is the current limitation or missing capability?"
+      placeholder: "e.g., It's currently difficult to estimate resources for hybrid quantum-classical algorithms because..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: "Describe the solution you'd like. How would this feature work? What would it enable?"
+      placeholder: "e.g., I propose adding a module that allows defining classical processing steps alongside quantum circuits, and estimates combined resource usage..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered (Optional)
+      description: "Describe any alternative solutions or features you've considered."
+      placeholder: "e.g., An alternative could be to provide hooks for external classical simulators, but direct integration might be more powerful..."
+      render: markdown
+    validations:
+      required: false
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      description: Who do you think would benefit most from this feature?
+      options:
+        - Researchers
+        - Developers (using Orquestra SDK or app)
+        - Hardware Providers (integrating with Orquestra)
+        - Educators (using Orquestra for teaching)
+        - All of the above
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context (Optional)
+      description: |
+        Add any other context, mockups, or links related to the feature request here.
+        - Links to relevant research papers or existing tools.
+        - Potential use cases or examples.
+        - Mockups or diagrams if applicable.
+      placeholder: "Provide any extra information that might be helpful."
+      render: markdown
+    validations:
+      required: false
