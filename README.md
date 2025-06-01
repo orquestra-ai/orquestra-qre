@@ -217,16 +217,6 @@ The `quantumMetrics.ts` file also includes various helper functions that can be 
 
 For mathematical underpinnings (complex numbers, matrices), see `src/utils/mathUtils.ts`.
 
-## 🌐 Phase 1: Open Source Launch
-
-Quantum Orchestra is currently in its Phase 1 Open Source launch. Our primary goals for this phase are:
-
-1.  **Build a Vibrant Community**: We aim to foster a collaborative environment for users and developers interested in quantum computing resource management.
-2.  **Establish a Solid Foundation**: Release a robust and well-documented core application.
-3.  **Gather Feedback**: Understand the needs of the quantum community to guide future development.
-
-This project is licensed under the **Apache-2.0 License**. For more details on the strategic vision for Phase 1, please refer to the [PHASE1_STRATEGY.md](PHASE1_STRATEGY.md) document.
-
 ## 🤝 Contributing
 
 We welcome contributions from everyone! Whether you're fixing a bug, adding a new feature, improving documentation, or suggesting ideas, your help is valuable.
