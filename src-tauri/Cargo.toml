@@ -1,10 +1,10 @@
 [package]
-name = "factory-starter-app"
+name = "orquestra-qre"
 version = "0.1.0"
-description = "A minimal Tauri starter application for Factory tutorial"
-authors = ["Factory AI"]
-license = "MIT"
-repository = "https://github.com/enoreyes/starter-app"
+description = "Orquestra QRE - Quantum Resource Estimation Platform"
+authors = ["Orquestra AI <contact@orquestra.ai>"]
+license = "Apache-2.0"
+repository = "https://github.com/orquestra-ai/orquestra-qre"
 edition = "2021"
 rust-version = "1.57"
 

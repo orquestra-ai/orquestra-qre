@@ -8,7 +8,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "Factory Starter App",
+    "productName": "Orquestra QRE",
     "version": "0.1.0"
   },
   "tauri": {
@@ -34,7 +34,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.factory.starter-app",
+      "identifier": "com.orquestra-ai.qre",
       "targets": "all"
     },
     "security": {
@@ -46,12 +46,14 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 900,
         "resizable": true,
-        "title": "Factory Starter App",
-        "width": 800,
+        "title": "Orquestra QRE",
+        "width": 1400,
         "center": true,
-        "decorations": true
+        "decorations": true,
+        "minHeight": 600,
+        "minWidth": 1000
       }
     ]
   }

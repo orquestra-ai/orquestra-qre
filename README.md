@@ -40,26 +40,26 @@ Follow these steps to get Quantum Orchestra up and running on your local machine
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Factory-AI/factory-tutorial.git quantum-orchestra
+    git clone https://github.com/orquestra-ai/orquestra-qre.git quantum-orchestra
     cd quantum-orchestra
     ```
 
 2.  **Install dependencies:**
-    This project uses Rust for the backend (via Tauri) and TypeScript/React for the frontend.
+    This project uses Rust for the backend (via Tauri) and HTML/JavaScript/CSS for the frontend. The `npm install` command installs development tools like the Tauri CLI, which helps in managing the Tauri application.
     ```bash
-    # Install frontend dependencies
+    # Install Node.js dev dependencies (e.g., @tauri-apps/cli)
     npm install
     ```
     The Rust dependencies will be compiled when you first run the application.
 
 3.  **Run the application:**
-    This command starts the Vite development server for the frontend and the Tauri development environment, which compiles the Rust backend and launches the desktop application.
+    This command compiles the Rust backend and launches the desktop application, serving the frontend directly.
     ```bash
     # Ensure Rust environment is sourced (if you just installed it)
     # source ~/.cargo/env  # Or your shell's equivalent
     npm run tauri:dev
     ```
-    The application window should open automatically. If you make changes to the frontend code, Vite will hot-reload the UI. Changes to the Rust backend will require a restart of the `tauri:dev` command.
+    The application window should open automatically. If you make changes to the frontend code (HTML, CSS, JS in the `src` directory), they should be reflected upon a refresh or restart of the app. Changes to the Rust backend will require a restart of the `tauri:dev` command.
 
 ## 🛠️ Technical Overview: Quantum Resource Estimation
 
@@ -230,8 +230,6 @@ We welcome contributions from everyone! Whether you're fixing a bug, adding a ne
     5.  Open a Pull Request against the `main` branch of this repository.
     6.  Ensure your PR passes all CI checks and addresses any review comments.
 *   **Contributor License Agreement (CLA)**: For non-trivial contributions, we may require a CLA to ensure the project's open-source integrity. This will be managed via CLA Assistant.
-
-Please read our `CONTRIBUTING.md` (to be created) for more detailed guidelines on coding standards, development setup, and the review process.
 
 ## 🗺️ Roadmap & Future Features
 
