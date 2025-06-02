@@ -40,26 +40,26 @@ Follow these steps to get Quantum Orchestra up and running on your local machine
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/orquestra-ai/orquestra-qre.git quantum-orchestra
+    git clone https://github.com/Factory-AI/factory-tutorial.git quantum-orchestra
     cd quantum-orchestra
     ```
 
 2.  **Install dependencies:**
-    This project uses Rust for the backend (via Tauri) and HTML/JavaScript/CSS for the frontend. The `npm install` command installs development tools like the Tauri CLI, which helps in managing the Tauri application.
+    This project uses Rust for the backend (via Tauri) and TypeScript/React for the frontend.
     ```bash
-    # Install Node.js dev dependencies (e.g., @tauri-apps/cli)
+    # Install frontend dependencies
     npm install
     ```
     The Rust dependencies will be compiled when you first run the application.
 
 3.  **Run the application:**
-    This command compiles the Rust backend and launches the desktop application, serving the frontend directly.
+    This command starts the Vite development server for the frontend and the Tauri development environment, which compiles the Rust backend and launches the desktop application.
     ```bash
     # Ensure Rust environment is sourced (if you just installed it)
     # source ~/.cargo/env  # Or your shell's equivalent
     npm run tauri:dev
     ```
-    The application window should open automatically. If you make changes to the frontend code (HTML, CSS, JS in the `src` directory), they should be reflected upon a refresh or restart of the app. Changes to the Rust backend will require a restart of the `tauri:dev` command.
+    The application window should open automatically. If you make changes to the frontend code, Vite will hot-reload the UI. Changes to the Rust backend will require a restart of the `tauri:dev` command.
 
 ## 🛠️ Technical Overview: Quantum Resource Estimation
 
