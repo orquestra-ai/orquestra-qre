@@ -40,8 +40,8 @@ Follow these steps to get Quantum Orchestra up and running on your local machine
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Factory-AI/factory-tutorial.git quantum-orchestra
-    cd quantum-orchestra
+    git clone https://github.com/orquestra-ai/orquestra-qre.git
+    cd orquestra-qre
     ```
 
 2.  **Install dependencies:**
