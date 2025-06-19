@@ -239,224 +239,94 @@ The Orquestra model provides a quick heuristic based on architectural fidelity p
 
 ## 4. Fault-Tolerance Calculations (Surface Code)
 
-Orquestra estimates resources for fault-tolerant quantum computation (FTQC) primarily based on the Surface Code model.
+Orquestra QRE provides a detailed estimation of resource overhead when applying fault-tolerant quantum computation using Surface Code and other error correction methods.
 
 ### 4.1 Code Distance Estimation
-The logical error rate per logical qubit per logical gate cycle, $P_L$, for a Surface Code of distance $d$ with physical error rate $P_p$ and threshold $P_{th}$ is often approximated by:
-$P_L \approx A \cdot \left(\frac{P_p}{P_{th}}\right)^{\frac{d+1}{2}}$
-where $A$ is a constant factor (e.g., 0.1, as in `SURFACE_CODE_PARAMS.CONSTANT_FACTOR_A`).
-Given a `targetLogicalErrorRate` ($P_{L,target}$), we need to find the minimum odd integer $d$ that satisfies $P_L \le P_{L,target}$.
-Rearranging the formula:
-$\frac{d+1}{2} \approx \log_{\frac{P_p}{P_{th}}} \left(\frac{P_{L,target}}{A}\right)$
-$d \approx 2 \cdot \frac{\log(P_{L,target}/A)}{\log(P_p/P_{th})} - 1$
-The calculated $d$ is rounded up to the nearest odd integer, with a minimum practical value (e.g., $d=3$).
-$P_p$ is typically taken as the architecture's two-qubit gate error rate. $P_{th}$ is a known constant for the Surface Code (e.g., $\sim 10^{-2}$).
 
-### Pseudocode (Code Distance):
-```plaintext
-function EstimateCodeDistance(P_L_target, P_p, P_th, A_const):
-  if P_p >= P_th: return infinity // Below threshold
-  
-  log_base = log(P_p / P_th)
-  log_val = log(P_L_target / A_const)
-  
-  d_float = 2 * (log_val / log_base) - 1
-  d_ceil = ceil(d_float)
-  
-  d_final = (d_ceil % 2 == 0) ? d_ceil + 1 : d_ceil // Ensure odd
-  return max(3, d_final) 
-```
+For a desired logical error rate $\epsilon_L$ and given physical error rate $\epsilon_P$, the required code distance $d$ in the Surface Code is estimated as:
+
+$$d = \left\lceil \frac{\ln(\epsilon_L/C)}{\ln(\epsilon_P/\epsilon_0)} \right\rceil$$
+
+Where:
+- $\epsilon_0$ is the threshold error rate (typically $\approx 1\%$ for Surface Code)
+- $C$ is a constant ($\approx 0.1$)
 
 ### 4.2 Physical Qubit Overhead
-For a Surface Code of distance $d$, the number of physical qubits $N_{p,log}$ required to encode one logical qubit is approximately:
-$N_{p,log} = k \cdot d^2$
-Commonly, $k=2$ is used (i.e., $2d^2$). More precisely, it can be $d^2 + (d-1)^2 = 2d^2 - 2d + 1$.
-Orquestra uses `SURFACE_CODE_PARAMS.PHYSICAL_PER_LOGICAL_FACTOR_FUNC(d)` (e.g., $2d^2$).
-If the logical circuit uses $N_L$ qubits, the raw total physical qubits would be $N_L \cdot N_{p,log}$.
-An additional `ROUTING_OVERHEAD_FACTOR` (e.g., 1.25 to 1.5) is often applied to account for space needed for routing logical qubits, ancilla preparation, and syndrome extraction circuits.
-$N_{P,total} = N_L \cdot N_{p,log} \cdot \text{ROUTING\_OVERHEAD\_FACTOR}$.
 
-### 4.3 Logical Gate Time and T-Factory Overheads
-*   **Logical Gate Cycle Time**: A logical gate operation (e.g., a logical CNOT) involves multiple rounds of syndrome extraction on the Surface Code patches. The duration of one such logical cycle $T_{cycle,log}$ is proportional to the code distance $d$ and the physical gate time $T_{gate,phys}$:
-    $T_{cycle,log} \approx C_d \cdot d \cdot T_{gate,phys}$
-    where $C_d$ is a factor (e.g., 5-10, as in `SURFACE_CODE_PARAMS.LOGICAL_CYCLE_TIME_FACTOR_VS_PHYSICAL_GATE`). $T_{gate,phys}$ is typically the duration of a physical two-qubit gate.
-*   **Total Logical Execution Time**: If $D_L$ is the depth of the circuit in terms of logical gate operations, then:
-    $T_{exec,log} = D_L \cdot T_{cycle,log}$.
-*   **T-Factory (Magic State Distillation)**: Non-Clifford gates like the T-gate are costly in FTQC. They are typically implemented via gate teleportation using "magic states" (e.g., T-states) which must be prepared with very high fidelity via distillation protocols.
-    *   The number of T-states required is equal to `tGateCount` ($N_T$).
-    *   Magic state distillation factories consume significant space (physical qubits) and time (additional logical cycles or dedicated factory operation time).
-    *   Estimating T-factory overhead is complex, involving specific distillation protocols (e.g., 15-to-1 Reed-Muller based). Orquestra uses a heuristic `distillationQubitOverhead` (e.g., 25% of data qubit footprint) and a `distillationOverhead` factor for overall resource increase.
-    *   More detailed models (e.g., Gidney & Ekerå, 2021) estimate factory volume (space-time qubits) based on $N_T$ and target distillation error rates.
+The Surface Code has a physical-to-logical qubit ratio that scales quadratically with the code distance:
 
-### Complexity Analysis (FT Estimation):
-*   Code distance calculation is $O(1)$.
-*   Scaling qubit counts and times are $O(1)$ once $d$ is known.
-*   Detailed T-factory modeling can be complex but is often based on pre-computed formulas or lookup tables for specific protocols.
+$$n_{physical} = \alpha \cdot d^2 \cdot n_{logical}$$
 
----
+Where:
+- $\alpha$ is a constant factor usually between 1 and 2, depending on the specific Surface Code implementation
+- $d$ is the code distance
+- $n_{logical}$ is the number of logical qubits in the circuit
 
-## 5. Error Propagation Models and Fidelity Estimation
+In the Orquestra QRE implementation, we use empirical models resulting in approximately 20x overhead for Surface Code and 5x for Repetition Code:
 
-Orquestra estimates circuit fidelity $F_{circuit}$ assuming a simple independent error model.
-
-### Model:
-1.  **Gate Fidelity**: Each gate $g_i$ in the circuit has an associated fidelity $F_{g_i} = 1 - \epsilon_{g_i}$, where $\epsilon_{g_i}$ is its error rate obtained from `architecture.gateErrors` (or a default if not specified for that gate type).
-2.  **SWAP Gate Fidelity**: If $N_{SWAP}$ SWAP gates are inserted, and each SWAP decomposes into 3 CNOTs, the fidelity contribution from SWAPs is $(F_{CNOT})^ {3 \cdot N_{SWAP}}$.
-3.  **Readout Fidelity**: Each of the $N_q$ qubits has a readout fidelity $F_{ro,j} = 1 - \epsilon_{ro,j}$. The combined readout fidelity is $\prod_{j=1}^{N_q} F_{ro,j}$. An average readout error $\bar{\epsilon}_{ro}$ can be used, leading to $(1 - \bar{\epsilon}_{ro})^{N_q}$.
-4.  **Total Circuit Fidelity (Gate + Readout)**:
-    $F_{circuit, GR} = \left( \prod_{i} F_{g_i} \right) \cdot (F_{CNOT})^{3 \cdot N_{SWAP}} \cdot \left( \prod_{j} F_{ro,j} \right)$
-5.  **Decoherence Factor (Heuristic)**: To account for idle qubit decoherence during execution, an additional exponential decay factor is applied:
-    $F_{decoherence} = \exp(-T_{exec,phys} / \bar{T}_{2,eff})$
-    where $T_{exec,phys}$ is the total physical execution time, and $\bar{T}_{2,eff}$ is an effective average T2 time for the qubits involved. This is a simplification; true decoherence depends on which qubits are idle and for how long.
-6.  **Final Estimated Fidelity**:
-    $F_{circuit} = F_{circuit, GR} \cdot F_{decoherence}$
-    The circuit error rate $\epsilon_{circuit} = 1 - F_{circuit}$.
-
-### Pseudocode (Fidelity Estimation):
-```plaintext
-function EstimateCircuitFidelity(circuit, architecture, num_swaps):
-  total_fidelity = 1.0
-  
-  // Gate errors
-  for each gate g in circuit.gates:
-    error_rate_g = GetErrorRate(g.type, g.qubits.length, architecture)
-    total_fidelity *= (1 - error_rate_g)
-    
-  // SWAP errors (3 CNOTs per SWAP)
-  error_rate_cnot = GetErrorRate('CNOT', 2, architecture)
-  fidelity_swap = (1 - error_rate_cnot)^3
-  total_fidelity *= (fidelity_swap ^ num_swaps)
-  
-  // Readout errors
-  avg_readout_error = GetAverageReadoutError(architecture)
-  total_fidelity *= ((1 - avg_readout_error) ^ circuit.num_qubits)
-  
-  // Decoherence factor (optional, heuristic)
-  T_exec_phys_ns = EstimatePhysicalExecutionTime(circuit, architecture, num_swaps)
-  T_exec_phys_us = T_exec_phys_ns / 1000
-  avg_T2_us = GetAverageCoherenceTimeT2(architecture)
-  if avg_T2_us > 0:
-    total_fidelity *= exp(-T_exec_phys_us / avg_T2_us)
-    
-  return max(0, total_fidelity)
+```python
+# Error Correction Models in Orquestra QRE
+ERROR_CORRECTION_CODES = {
+    "None": {"overhead": 1, "logical_to_physical": lambda n: n},
+    "Surface Code": {"overhead": 20, "logical_to_physical": lambda n: n * 20},
+    "Repetition Code": {"overhead": 5, "logical_to_physical": lambda n: n * 5}
+}
 ```
 
-### Complexity Analysis:
-*   Iterating through $G$ gates: $O(G)$.
-*   Calculating SWAP fidelity: $O(1)$.
-*   Readout fidelity: $O(N_q)$ if individual readout errors are used, $O(1)$ if average.
-*   Decoherence factor: Depends on $T_{exec,phys}$ calculation.
-*   Overall: Dominated by iteration through gates, so approximately $O(G)$.
+### 4.3 Timing Overhead with Error Correction
 
----
+For a quantum circuit with error correction, the runtime is adjusted by an overhead factor:
 
-## 6. Classical Simulation Complexity Analysis
+$$T_{EC} = \gamma \cdot T_{original}$$
 
-Estimating resources for classical simulation of quantum circuits.
+Where:
+- $\gamma$ is the time overhead factor, typically between 10-100x depending on the error correction code
+- $T_{original}$ is the original runtime without error correction
 
-### 6.1 State Vector Simulation
-*   **Time Complexity**: $O(G \cdot 2^{N_q})$. Each gate operation involves updating a state vector of $2^{N_q}$ complex amplitudes. A single-qubit gate modifies $2^{N_q}$ amplitudes. A two-qubit gate also modifies $2^{N_q}$ amplitudes, typically involving sparse matrix operations on the full state vector.
-*   **Memory Complexity**: $O(2^{N_q})$. Requires storing $2^{N_q}$ complex numbers (e.g., 16 bytes each for double precision).
+Similarly, the expected fidelity is affected exponentially:
 
-### 6.2 Clifford Circuit Simulation (Gottesman-Knill Theorem)
-*   If a circuit consists solely of Clifford gates (H, S, CNOT, Pauli gates, and their compositions), it can be simulated efficiently on a classical computer.
-*   **Time Complexity**: Typically $O(G \cdot N_q^2)$ or $O(G \cdot N_q \cdot \text{poly}(\log G))$ using CHP (CNOT-Hadamard-Phase) tableau representation or other stabilizer formalism methods.
-*   **Memory Complexity**: $O(N_q^2)$ to store the stabilizer tableau.
+$$F_{EC} = {F_{original}}^{\gamma}$$
 
-### 6.3 Tensor Network Methods (e.g., MPS, PEPS)
-*   For circuits with limited entanglement, tensor network methods can be more efficient than state vector simulation.
-*   **Complexity**: Highly dependent on the circuit structure and the maximum bond dimension $\chi$ required to represent the state.
-    *   For 1D-like circuits (Matrix Product States - MPS):
-        *   Time: $O(G \cdot N_q \cdot \chi^3)$ for single-qubit gates, $O(G \cdot N_q \cdot \chi^4)$ or higher for two-qubit gates (depending on contraction strategy).
-        *   Memory: $O(N_q \cdot \chi^2)$.
-    *   For 2D circuits (Projected Entangled Pair States - PEPS): Complexity is generally exponential in $\chi$ and polynomial in $N_q$.
-*   Estimating $\chi$ a priori for a general circuit is difficult.
+## 5. Hardware Provider Models
 
-Orquestra's `estimateClassicalResources` function provides estimates primarily for state vector and Clifford simulations.
+Orquestra QRE includes detailed models of major quantum computing providers to enable realistic resource estimation:
 
----
+### 5.1 Hardware Parameter Model
 
-## 7. Coherence Analysis Algorithms
+Each hardware provider is modeled using the following parameters:
 
-Coherence analysis determines if the circuit's execution time is compatible with the hardware's qubit coherence times (T1 and T2).
+```python
+@dataclass
+class HardwareProvider:
+    name: str                # Provider name
+    max_qubits: int          # Maximum available qubits
+    coherence_time_us: float # Coherence time in microseconds
+    single_qubit_error: float # Single-qubit gate error rate
+    two_qubit_error: float   # Two-qubit gate error rate
+    connectivity: str        # Qubit connectivity topology
+```
 
-### Algorithm:
-1.  Calculate the total physical execution time $T_{exec,phys}$ of the circuit on the given architecture (see Section 5 for $T_{exec,phys}$ estimation, which includes gate durations and SWAP times).
-2.  Determine the required coherence time $T_{req,coh}$ by applying a safety factor:
-    $T_{req,coh} = T_{exec,phys} \cdot \text{COHERENCE\_SAFETY\_FACTOR}$
-    (e.g., safety factor = 5). This means the computation should ideally finish within 1/5th of the qubit coherence times.
-3.  Retrieve average T1 ($\bar{T}_1$) and T2 ($\bar{T}_2$) times from `architecture.t1Times` and `architecture.t2Times` (in microseconds).
-4.  Convert $T_{req,coh}$ (typically in ns from $T_{exec,phys}$) to microseconds: $T'_{req,coh} = T_{req,coh} / 1000$.
-5.  **Coherence Limitation Check**:
-    *   The circuit is T1-limited if $T'_{req,coh} > \bar{T}_1$.
-    *   The circuit is T2-limited if $T'_{req,coh} > \bar{T}_2$.
+### 5.2 Provider-Specific Parameters
 
-### Complexity Analysis:
-*   Dominated by the calculation of $T_{exec,phys}$, which is $O(G)$ or $O(D_{compiled} \cdot \text{AvgLayerTimePhys})$.
-*   The comparison steps are $O(1)$.
+The platform includes empirical models for major quantum hardware providers:
 
----
+| Provider | Qubits | Coherence Time (μs) | 1Q Error | 2Q Error | Connectivity |
+|----------|--------|---------------------|----------|----------|-------------|
+| IBM      | 127    | 100                 | 1e-3     | 1e-2     | Heavy Hex   |
+| Google   | 72     | 150                 | 5e-4     | 1e-2     | Sycamore    |
+| IonQ     | 32     | 1000                | 1e-4     | 2e-3     | All-to-All  |
+| Rigetti  | 80     | 80                  | 2e-3     | 1.5e-2   | Lattice     |
+| Custom   | 1000   | 10000               | 1e-5     | 1e-4     | Custom      |
 
-## 8. Performance Optimization Techniques (Conceptual Overview)
+### 5.3 Hardware-Aware Estimation Algorithm
 
-While Orquestra primarily focuses on estimation, a conceptual paper should discuss how its results can inform optimization. Key techniques include:
-*   **Gate Compilation & Synthesis**: Decomposing logical gates into native hardware gates, optimizing gate sequences (e.g., using KAK decomposition for two-qubit unitaries, template-based synthesis).
-*   **Circuit Rewriting**: Applying identities (e.g., $HZH=X$, $CNOT(a,b)CNOT(a,b)=I$) to reduce gate count or depth.
-*   **SWAP Network Optimization**: Using sophisticated routing algorithms (e.g., SABRE, Steiner trees) beyond simple greedy approaches to minimize SWAP insertions and their impact on depth and fidelity. This often involves lookahead and iterative improvement.
-*   **Noise-Aware Compilation**: Mapping logical qubits to physical qubits and routing gates in a way that minimizes exposure to particularly noisy qubits or error-prone interactions. This requires detailed calibration data from the hardware.
-*   **Parallelization & Scheduling**: Optimizing the circuit depth by reordering gates (respecting commutation rules) to maximize parallel execution.
-*   **Error Mitigation Techniques**: Adding operations (e.g., dynamical decoupling sequences, zero-noise extrapolation pre/post-processing) to reduce the impact of noise, which affects resource counts.
+Resource estimates are adjusted based on hardware constraints using the following algorithm:
 
-Orquestra's estimations can serve as cost functions for these optimization algorithms.
-
----
-
-## 9. Benchmarking Methodologies
-
-### Benchmarking Orquestra Itself:
-*   **Accuracy**: Compare Orquestra's estimations against:
-    *   Results from established quantum simulators (e.g., Qiskit Aer, Cirq simulator) for small circuits where exact simulation is feasible.
-    *   Published resource counts for well-known algorithms (e.g., Shor's algorithm for small numbers, Grover's search) on specific architectures.
-    *   Output from other resource estimation tools (e.g., Microsoft QDK Resource Estimator, Classiq platform).
-*   **Performance**: Measure the execution time of Orquestra's estimation algorithms for circuits of varying sizes and complexity.
-*   **Scalability**: Assess how estimation time and memory usage scale with $N_q$ and $G$.
-
-### Using Benchmarks within Orquestra:
-*   **Quantum Volume Model Circuits**: The QV estimation relies on model circuits. The choice and generation of these circuits should align with established QV benchmarking practices.
-*   **Standard Algorithm Benchmarks**: Incorporate a library of standard benchmark circuits (e.g., from QASMBench, RevLib) to allow users to quickly estimate resources for common tasks.
-
----
-
-## 10. Validation Strategies
-
-Validating the accuracy of a QRE tool is crucial.
-1.  **Cross-Tool Comparison**:
-    *   Implement a set of benchmark circuits and run estimations using Orquestra and other publicly available or commercial QRE tools.
-    *   Analyze discrepancies and identify reasons (e.g., different underlying models for SWAPs, error rates, FTQC parameters).
-2.  **Comparison with Published Research**:
-    *   For specific algorithms and target hardware for which resource estimates have been published in peer-reviewed literature (e.g., factoring, quantum chemistry simulations), compare Orquestra's results.
-    *   Example: Gidney & Ekerå (2021) provide detailed FTQC estimates for factoring 2048-bit RSA integers.
-3.  **Small Circuit Exact Simulation**:
-    *   For circuits with few qubits ($N_q < \sim 20-30$), perform full state-vector simulation with noise models matching the architecture.
-    *   Compare simulated fidelities and output distributions with Orquestra's fidelity estimates.
-4.  **Parameter Sensitivity Analysis**:
-    *   Vary key architectural parameters (e.g., gate error rates, coherence times) and observe the impact on resource estimates.
-    *   Ensure the trends align with theoretical expectations (e.g., higher error rates leading to larger code distances in FTQC).
-5.  **Limiting Case Analysis**:
-    *   Test with ideal architectures (e.g., all-to-all connectivity, zero error rates, infinite coherence) to ensure estimates simplify correctly (e.g., zero SWAPs, perfect fidelity).
-    *   Test with extremely noisy or constrained architectures to check for sensible failure modes or high resource predictions.
-6.  **Community Feedback and Iteration**:
-    *   As an open-source tool, engage with the quantum computing community to identify inaccuracies or areas for model improvement based on their experiences with real hardware or more detailed simulations.
-
----
-
-## 11. References
-
-*   Li, G., Ding, Y., & Xie, Y. (2019). Tackling the qubit mapping problem for NISQ-era quantum devices. *Proceedings of the Twenty-Fourth International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS '19)*.
-*   Nielsen, M. A., & Chuang, I. L. (2010). *Quantum Computation and Quantum Information: 10th Anniversary Edition*. Cambridge University Press.
-*   Cross, A. W., Bishop, L. S., Sheldon, S., Nation, P. D., & Gambetta, J. M. (2019). Validating quantum computers using randomized model circuits. *Physical Review A, 100*(3), 032328.
-*   Fowler, A. G., Mariantoni, M., Martinis, J. M., & Cleland, A. N. (2012). Surface codes: Towards practical large-scale quantum computation. *Physical Review A, 86*(3), 032324.
-*   Bravyi, S., & Kitaev, A. (2005). Universal quantum computation with ideal Clifford gates and noisy ancillas. *Physical Review A, 71*(2), 022316.
-*   Gidney, C., & Ekerå, M. (2021). How to factor 2048 bit RSA integers in 8 hours using 20 million noisy qubits. *Quantum, 5*, 433.
-*   Preskill, J. (2018). Quantum Computing in the NISQ era and beyond. *Quantum, 2*, 79.
+1. Calculate logical resource needs (gates, depth, runtime)
+2. If error correction is enabled, calculate physical qubit requirements
+3. Check if the circuit exceeds hardware limitations:
+   - Physical qubits > max_qubits → Infeasible
+   - Estimated runtime > coherence_time → Decoherence likely
+4. Adjust fidelity estimates based on hardware error rates
+5. For non-fully-connected architectures, estimate SWAP overhead based on connectivity constraints
 

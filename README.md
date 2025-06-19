@@ -7,23 +7,34 @@
 
 ## ✨ Key Features
 
-*   **Intuitive Circuit Design**: Visually build or select pre-defined quantum circuits (Bell Pair, Grover's, QFT).
+*   **Intuitive Circuit Design**: Visually build or select pre-defined quantum circuits (Bell Pair, Grover's, QFT, Random).
 *   **Advanced Resource Estimation**: In-depth analysis of:
     *   Gate counts, circuit depth, and width.
     *   **Quantum Volume (QV)**, T-gate count, SWAP gate overhead.
     *   Execution time, error rates, and overall circuit fidelity.
     *   Coherence time requirements and limitations.
     *   Classical preprocessing complexity and memory needs.
-*   **Fault Tolerance Analysis**: Toggle error correction (e.g., Surface Code) to estimate:
-    *   Logical vs. Physical qubit requirements.
-    *   Error correction code distance.
-    *   Resource state (magic state) overhead.
-*   **Multi-Provider Comparison**:
-    *   Compare resource needs and estimated costs across major quantum providers (IBM Quantum, Google Quantum AI, Rigetti, IonQ).
-    *   Real-time (simulated) provider availability and queue times.
-    *   Detailed architecture parameters for each provider.
+*   **Hardware-Aware Analysis**: Select from multiple hardware providers with realistic parameters:
+    *   IBM (127 qubits, Heavy Hex connectivity)
+    *   Google (72 qubits, Sycamore connectivity)
+    *   IonQ (32 qubits, All-to-All connectivity)
+    *   Rigetti (80 qubits, Lattice connectivity)
+    *   Custom (user-defined parameters)
+*   **Error Correction Modeling**: Toggle error correction codes with accurate overhead calculation:
+    *   Surface Code (20x qubit overhead)
+    *   Repetition Code (5x qubit overhead) 
+    *   Logical vs. Physical qubit requirements
+    *   Adjusted runtime and fidelity estimates
+*   **Hardware Feasibility Checks**: Real-time warnings when:
+    *   Circuit exceeds maximum available qubits
+    *   Runtime exceeds coherence time limitations
+    *   Error correction overhead is impractical
+*   **Interactive Visualizations**: Rich visual feedback including:
+    *   Interactive circuit diagrams (for circuits up to 25 qubits)
+    *   Gate distribution analysis
+    *   Performance comparison charts across providers and configurations
 *   **Customizable & Extensible**: Easily add new quantum circuits, gates, and hardware provider models.
-*   **Open Source**: Community-driven development with a transparent roadmap.
+*   **Modern, Responsive UI**: Clean section-based layout with intuitive navigation.
 
 ## 🚀 Getting Started
 
@@ -31,39 +42,109 @@ Follow these steps to get Quantum Orchestra up and running on your local machine
 
 ### Prerequisites
 
-*   Node.js (v18 or later)
-*   npm (v9 or later)
-*   Rust (latest stable, for Tauri backend)
+*   Python 3.8+ 
 *   Git
 
 ### Installation & Running
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/orquestra-ai/orquestra-qre.git
-    cd orquestra-qre
-    ```
+You have multiple options to run Orquestra QRE, from simple to advanced:
 
-2.  **Install dependencies:**
-    This project uses Rust for the backend (via Tauri) and TypeScript/React for the frontend.
-    ```bash
-    # Install frontend dependencies
-    npm install
-    ```
-    The Rust dependencies will be compiled when you first run the application.
+#### 📊 **Option 1: Streamlit Dashboard (Recommended)**
+```bash
+git clone https://github.com/your-username/orquestra-qre-project.git
+cd orquestra-qre-project
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+Beautiful interactive dashboard with real-time visualizations, hardware provider comparison, and error correction modeling.
 
-3.  **Run the application:**
-    This command starts the Vite development server for the frontend and the Tauri development environment, which compiles the Rust backend and launches the desktop application.
-    ```bash
-    # Ensure Rust environment is sourced (if you just installed it)
-    # source ~/.cargo/env  # Or your shell's equivalent
-    npm run tauri:dev
-    ```
-    The application window should open automatically. If you make changes to the frontend code, Vite will hot-reload the UI. Changes to the Rust backend will require a restart of the `tauri:dev` command.
+#### 🔬 **Option 2: Jupyter Notebook (Research)**
+```bash
+jupyter notebook quantum_exploration.ipynb
+```
+Perfect for research, experimentation, and documentation
+
+#### 🚀 **Option 3: Simple Web App**
+```bash
+python simple_run.py
+```
+Opens automatically in your browser at `http://localhost:8080`
+
+#### 🖥️ **Option 4: Desktop App (Advanced)**
+For a native desktop experience with Tauri:
+```bash
+# Requires Node.js, npm, and Rust
+npm install
+npm run tauri:dev
+```
+
+#### 🐍 **Option 5: Command Line Interface**
+```bash
+python main.py --help
+python main.py --circuit bell_state --provider ibm
+```
+
+#### 🧪 **Option 6: Python SDK**
+```bash
+# Use the Python SDK for programmatic access
+pip install -e python-sdk/
+python -c "from orquestra import QuantumCircuit, estimate_resources; print('SDK Ready')"
+```
+
+### Testing
+
+Quantum Orchestra has a comprehensive test suite to ensure code quality and correctness. To run the tests:
+
+```bash
+# Install test dependencies
+pip install -r requirements-test.txt
+
+# Run tests
+python test_runner.py
+```
+
+This will execute all unit and integration tests and display test coverage information. The test suite includes:
+
+* **Unit Tests**: Tests for core quantum components like gates, circuits, and resource estimation
+* **Integration Tests**: Tests for hardware-aware estimation, error correction modeling, and circuit scaling
+
+You can also run specific test categories:
+
+```bash
+# Run only unit tests
+python -m pytest tests/test_basic.py -v
+
+# Run only integration tests
+python -m pytest tests/test_integration.py -v
+
+# Run with detailed coverage report
+python -m pytest tests/ --cov=orquestra_qre --cov-report=html
+```
 
 ## 🛠️ Technical Overview: Quantum Resource Estimation
 
-Quantum Orchestra's core is its sophisticated resource estimation engine, found in `src/utils/quantumMetrics.ts`. This engine takes a `QuantumCircuit` definition and a `QuantumArchitecture` model as input and outputs a comprehensive `QuantumResourceEstimation` object.
+Quantum Orchestra's core is its sophisticated resource estimation engine, implemented across multiple components:
+
+### Core Implementation Files:
+- **`orquestra_qre/quantum.py`**: Main quantum circuit definitions and gate operations
+- **`orquestra_qre/core.py`**: Resource estimation algorithms and metrics calculation
+- **`orquestra_qre/backends.py`**: Hardware provider models and connectivity analysis
+- **`src/utils/quantumMetrics.ts`**: TypeScript implementation for web interface
+- **`python-sdk/orquestra/`**: Python SDK for programmatic access
+
+### Supported Quantum Frontends
+
+Orquestra QRE integrates with multiple quantum programming frameworks, allowing you to use your preferred tools for circuit design:
+
+| Frontend | Status | Provider |
+|----------|--------|----------|
+| Qiskit | ✅ Full support | IBM Quantum |
+| Cirq | ✅ Full support | Google Quantum AI |
+| PyQuil | ✅ Full support | Rigetti |
+| PennyLane | ⚠️ Experimental | Cross-platform |
+| Braket | ⚠️ Experimental | AWS |
+
+See [FRONTENDS.md](./FRONTENDS.md) for detailed integration instructions and examples.
 
 ### Key Metrics Calculated:
 
@@ -129,9 +210,119 @@ The engine uses mathematical utilities from `src/utils/mathUtils.ts` for complex
     *   View usage statistics like monthly compute hours and total costs.
     *(Screenshot: A dashboard layout with charts for provider availability, a list of active jobs with progress bars, and summary cards for usage statistics.)*
 
-## 🔌 API Documentation (Quantum Metrics Engine)
+## 🚀 New in v2.0: Advanced Features & Multi-Platform Support
 
-The core resource estimation logic is exposed through functions in `src/utils/quantumMetrics.ts`.
+### Quantum Circuit Templates & Analysis
+- **Advanced Circuit Templates**: 
+  - **VQE** (Variational Quantum Eigensolver) with multiple ansatz types:
+    - Hardware-efficient ansatz with customizable entanglement patterns (linear, circular, full)
+    - UCCSD ansatz for chemistry simulations
+    - Custom ansatz with user-defined parameters
+  - **QAOA** (Quantum Approximate Optimization Algorithm) with multiple problem types:
+    - MaxCut optimization with ring topology
+    - Number Partitioning for equal-sum subset problems
+    - Random problem instances for experimental testing
+- **Real Hardware Integration**: Direct submission to IBM Quantum, IonQ, and Rigetti backends
+- **Enhanced Connectivity Modeling**: Hardware-specific routing with SWAP overhead analysis
+
+### Multi-Platform Architecture  
+- **Web Interface**: React/TypeScript frontend with interactive visualizations
+- **Desktop Application**: Native Tauri app for enhanced performance
+- **Python SDK**: Programmatic access with `orquestra` package
+- **Streamlit Dashboard**: Interactive data science interface
+- **CLI Tools**: Command-line utilities for batch processing
+
+### Supported Quantum Frontends
+Orquestra QRE integrates with multiple quantum programming frameworks:
+
+| Frontend | Status | Provider | Features |
+|----------|--------|----------|----------|
+| Qiskit | ✅ Full | IBM | Circuit conversion, execution, resource estimation |
+| Cirq | ✅ Full | Google | Circuit conversion, execution, resource estimation |
+| PyQuil | ✅ Full | Rigetti | Circuit conversion, execution, resource estimation |
+| PennyLane | ⚠️ Experimental | Cross-platform | Basic circuit conversion |
+| Braket | ⚠️ Experimental | AWS | Basic circuit conversion |
+
+See [FRONTENDS.md](./FRONTENDS.md) for detailed integration instructions and examples.
+
+### Advanced Analysis Features
+- **Error Correction Modeling**: Surface Code and Repetition Code with realistic overheads
+- **Provider Comparison**: Side-by-side analysis across quantum hardware vendors
+- **Scalability Analysis**: Resource scaling predictions for future larger circuits
+- **Export Capabilities**: Results export to JSON, CSV, and LaTeX formats
+- **Algorithm-Specific Analysis**:
+  - **VQE**: Analyze different ansatz types (hardware-efficient, UCCSD) and entanglement patterns
+  - **QAOA**: Compare performance across different optimization problems (MaxCut, Number Partitioning)
+  - **Resource Optimization**: Recommendations for optimal backend selection based on circuit characteristics
+
+### 🧪 Python SDK API
+
+The Python SDK provides programmatic access to Quantum Orchestra's capabilities:
+
+```python
+from orquestra import QuantumCircuit, estimate_resources, HardwareProvider
+from orquestra.circuit import CircuitGenerator
+
+# Method 1: Create a simple quantum circuit manually
+circuit = QuantumCircuit(name="Bell State")
+circuit.add_gate("H", [0])
+circuit.add_gate("CNOT", [0, 1])
+
+# Method 2: Use built-in circuit generators for advanced algorithms
+circuit_gen = CircuitGenerator()
+
+# Generate a VQE circuit with UCCSD ansatz
+vqe_circuit = circuit_gen.generate_vqe_circuit(
+    n_qubits=4, 
+    layers=2, 
+    ansatz_type="uccsd"
+)
+
+# Generate a QAOA circuit for MaxCut problem
+qaoa_circuit = circuit_gen.generate_qaoa_circuit(
+    n_qubits=6,
+    p_steps=2,
+    problem_type="MaxCut"
+)
+
+# Define hardware provider
+provider = HardwareProvider.IBM_QUANTUM
+
+# Estimate resources for the QAOA circuit
+estimation = estimate_resources(qaoa_circuit, provider)
+print(f"Gate count: {estimation.total_gates}")
+print(f"Circuit depth: {estimation.circuit_depth}")
+print(f"Required qubits: {estimation.qubit_count}")
+print(f"Estimated execution time: {estimation.execution_time_us} μs")
+```
+
+### 🔌 CLI Usage
+
+```bash
+# Analyze a specific circuit type
+python main.py --circuit grover --qubits 4 --provider google
+
+# Compare across providers
+python main.py --circuit qft --qubits 8 --compare-providers
+
+# Enable error correction analysis
+python main.py --circuit vqe --qubits 6 --error-correction surface_code
+
+# Use specific VQE ansatz with custom parameters
+python main.py --circuit vqe --qubits 8 --ansatz uccsd --layers 2
+
+# Generate QAOA for specific optimization problem
+python main.py --circuit qaoa --qubits 10 --problem-type maxcut --p-steps 3
+
+# Export results
+python main.py --circuit qaoa --qubits 10 --export results.json
+```
+
+## 🔌 API Documentation
+
+### TypeScript/JavaScript API
+
+The core resource estimation logic is exposed through functions in `src/utils/quantumMetrics.ts`:
 
 ### Main Function: `estimateQuantumResources`
 

@@ -181,7 +181,56 @@ When comparing Quantum Orchestra's outputs with experimental results or outputs 
 *   **Residual Analysis**:
     *   Plot residuals (differences between Quantum Orchestra's estimates and benchmark values) to identify systematic biases or trends.
 
-## 11. Continuous Integration (CI) Testing Strategies
+## 11. Test Suite Overview
+
+The Orquestra QRE test suite provides comprehensive validation of the platform's functionality. The test suite is organized as follows:
+
+### 11.1 Current Test Structure
+
+The current test suite is located in the `tests/` directory and includes:
+
+*   **Unit Tests** (`test_basic.py`): 
+    *   Validates core quantum components: `QuantumGate`, `QuantumCircuit`, `ResourceEstimate` 
+    *   Tests estimation functionality: `QuantumResourceEstimator`
+    *   Verifies circuit generation: `CircuitGenerator` (Bell states, Grover, QFT, Random circuits)
+
+*   **Integration Tests** (`test_integration.py`):
+    *   Tests hardware-aware estimation with different providers
+    *   Validates error correction modeling and overhead calculation
+    *   Checks scaling behavior of circuits with increasing size
+    *   Verifies feasibility checks (qubit limits, coherence time constraints)
+
+*   **Test Runner** (`test_runner.py`):
+    *   Provides a simple entry point for running all tests with proper configuration
+    *   Includes coverage reporting for monitoring test completeness
+
+### 11.2 Extending the Test Suite
+
+When adding new functionality to the platform, follow these guidelines to extend the test suite:
+
+1. **Choose the Right Test Location**:
+   * For new core quantum components, add tests to `test_basic.py`
+   * For features involving hardware-awareness, error correction, or external interactions, add tests to `test_integration.py`
+   * For web UI or streamlit components, create a new test file like `test_ui.py`
+
+2. **Test Coverage Goals**:
+   * Aim for 100% coverage of critical quantum code
+   * Include both positive tests (expected behavior) and negative tests (error handling)
+   * Test edge cases (e.g., empty circuits, maximum qubit counts)
+
+3. **Test New Circuit Types**:
+   * When adding new circuit generators, test:
+     * Correct number of qubits 
+     * Expected circuit structure
+     * Scaling behavior with different parameters
+
+4. **Hardware Model Testing**:
+   * For new hardware providers, test:
+     * Basic estimation works with the provider
+     * Warnings are correctly triggered when limits are exceeded
+     * Provider-specific characteristics are correctly accounted for
+
+### 11.3 Continuous Integration (CI) Testing Strategies
 
 Automated testing within a CI/CD pipeline is crucial for maintaining quality and reliability.
 
