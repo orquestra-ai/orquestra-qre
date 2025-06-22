@@ -261,3 +261,147 @@ class TestCircuitGenerator:
         
         # Circuits should differ in at least one gate (with very high probability)
         assert gates1 != gates2
+        
+    def test_generate_vqe_circuit_default(self):
+        """Test the VQE circuit generation with default parameters."""
+        generator = CircuitGenerator()
+        
+        # Test with default parameters
+        circuit = generator.generate_vqe_circuit()
+        assert "VQE" in circuit.name
+        assert "HE" in circuit.name  # 'HE' for hardware efficient
+        assert circuit.num_qubits == 4
+        assert len(circuit.gates) > 0
+        
+        # Verify we have Hadamard gates for initialization
+        h_gates = [g for g in circuit.gates if g.name == "H"]
+        assert len(h_gates) >= 4  # At least one H gate per qubit
+        
+        # Verify we have parameterized rotation gates
+        rotation_gates = [g for g in circuit.gates if g.name in ("RY", "RZ")]
+        assert len(rotation_gates) > 0
+        assert all(g.parameters is not None for g in rotation_gates)
+        
+        # Verify we have entangling gates
+        entangling_gates = [g for g in circuit.gates if g.name == "CNOT"]
+        assert len(entangling_gates) > 0
+        
+    def test_generate_vqe_circuit_uccsd(self):
+        """Test the VQE circuit generation with UCCSD ansatz."""
+        generator = CircuitGenerator()
+        
+        # Test with UCCSD ansatz
+        circuit = generator.generate_vqe_circuit(n_qubits=4, layers=2, ansatz_type="uccsd")
+        assert "VQE" in circuit.name
+        assert "UCCSD" in circuit.name
+        assert circuit.num_qubits == 4
+        assert len(circuit.gates) > 0
+        
+        # Verify we have X gates for reference state preparation
+        x_gates = [g for g in circuit.gates if g.name == "X"]
+        assert len(x_gates) > 0
+        
+        # Verify we have parameterized rotation gates
+        rotation_gates = [g for g in circuit.gates if g.name in ("RY", "RX")]
+        assert len(rotation_gates) > 0
+        
+        # Verify we have entangling gates
+        entangling_gates = [g for g in circuit.gates if g.name == "CNOT"]
+        assert len(entangling_gates) > 0
+        
+    def test_generate_vqe_circuit_entanglement_patterns(self):
+        """Test the VQE circuit generation with different entanglement patterns."""
+        generator = CircuitGenerator()
+        
+        # Test with linear entanglement
+        circuit_linear = generator.generate_vqe_circuit(n_qubits=4, entanglement_pattern="linear")
+        assert "linear" in circuit_linear.name.lower()
+        
+        # Test with circular entanglement
+        circuit_circular = generator.generate_vqe_circuit(n_qubits=4, entanglement_pattern="circular")
+        assert "circular" in circuit_circular.name.lower()
+        
+        # Test with full entanglement
+        circuit_full = generator.generate_vqe_circuit(n_qubits=4, entanglement_pattern="full")
+        assert "full" in circuit_full.name.lower()
+        
+        # Check that different patterns result in different circuits
+        gates_linear = [f"{g.name}:{g.qubits}" for g in circuit_linear.gates]
+        gates_circular = [f"{g.name}:{g.qubits}" for g in circuit_circular.gates]
+        gates_full = [f"{g.name}:{g.qubits}" for g in circuit_full.gates]
+        
+        assert gates_linear != gates_circular
+        assert gates_linear != gates_full
+        assert gates_circular != gates_full
+        
+    def test_generate_qaoa_circuit_default(self):
+        """Test the QAOA circuit generation with default parameters."""
+        generator = CircuitGenerator()
+        
+        # Test with default parameters
+        circuit = generator.generate_qaoa_circuit()
+        assert "QAOA" in circuit.name
+        assert "maxcut" in circuit.name.lower()
+        assert circuit.num_qubits == 4
+        assert len(circuit.gates) > 0
+        
+        # Verify we have Hadamard gates for initialization
+        h_gates = [g for g in circuit.gates if g.name == "H"]
+        assert len(h_gates) == 4  # One H gate per qubit
+        
+        # Verify we have parameterized rotation gates
+        rz_gates = [g for g in circuit.gates if g.name == "RZ"]
+        assert len(rz_gates) > 0
+        
+        rx_gates = [g for g in circuit.gates if g.name == "RX"]
+        assert len(rx_gates) > 0
+        
+        # Verify we have entangling gates
+        cnot_gates = [g for g in circuit.gates if g.name == "CNOT"]
+        assert len(cnot_gates) > 0
+        
+    def test_generate_qaoa_circuit_problem_types(self):
+        """Test the QAOA circuit generation with different problem types."""
+        generator = CircuitGenerator()
+        
+        # Test with MaxCut problem
+        circuit_maxcut = generator.generate_qaoa_circuit(n_qubits=4, problem_type="MaxCut")
+        assert "QAOA" in circuit_maxcut.name
+        assert "MaxCut" in circuit_maxcut.name
+        
+        # Test with Number Partitioning problem
+        circuit_np = generator.generate_qaoa_circuit(n_qubits=4, problem_type="Number Partitioning")
+        assert "QAOA" in circuit_np.name
+        assert "Number Partitioning" in circuit_np.name
+        
+        # Test with Random problem
+        circuit_random = generator.generate_qaoa_circuit(n_qubits=4, problem_type="Random")
+        assert "QAOA" in circuit_random.name
+        assert "Random" in circuit_random.name
+        
+        # Check that different problems result in different circuits
+        gates_maxcut = [f"{g.name}:{g.qubits}" for g in circuit_maxcut.gates]
+        gates_np = [f"{g.name}:{g.qubits}" for g in circuit_np.gates]
+        gates_random = [f"{g.name}:{g.qubits}" for g in circuit_random.gates]
+        
+        # The random implementation should create different circuits each time
+        # but the deterministic ones (MaxCut and Number Partitioning) should be different from each other
+        assert gates_maxcut != gates_np
+        
+    def test_generate_qaoa_circuit_p_steps(self):
+        """Test the QAOA circuit generation with different numbers of steps."""
+        generator = CircuitGenerator()
+        
+        # Generate circuits with different numbers of QAOA steps
+        circuit_p1 = generator.generate_qaoa_circuit(n_qubits=4, p_steps=1)
+        circuit_p2 = generator.generate_qaoa_circuit(n_qubits=4, p_steps=2)
+        circuit_p3 = generator.generate_qaoa_circuit(n_qubits=4, p_steps=3)
+        
+        # Check that the circuit names reflect the number of steps
+        assert "p=1" in circuit_p1.name.lower() or "steps)" in circuit_p1.name
+        assert "p=2" in circuit_p2.name.lower() or "steps)" in circuit_p2.name
+        assert "p=3" in circuit_p3.name.lower() or "steps)" in circuit_p3.name
+        
+        # Check that more steps result in more gates
+        assert len(circuit_p1.gates) < len(circuit_p2.gates)
+        assert len(circuit_p2.gates) < len(circuit_p3.gates)

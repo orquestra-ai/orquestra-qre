@@ -242,30 +242,46 @@ class IBMQuantumBackend:
         """
         self.api_token = api_token
         self.provider = None
+        self.qiskit_available = True
         
-    def initialize(self):
-        """Initialize the connection to IBM Quantum."""
+    def initialize(self) -> bool:
+        """Initialize IBM Quantum backend."""
         try:
-            # This requires qiskit to be installed
-            from qiskit import IBMQ
+            from qiskit_ibm_provider import IBMProvider
             
-            # Load account if not already done
-            if not IBMQ.active_account():
-                if self.api_token:
-                    IBMQ.save_account(self.api_token, overwrite=True)
-                IBMQ.load_account()
-                
-            # Get provider
-            self.provider = IBMQ.get_provider()
+            if not hasattr(self, 'credentials') or not self.credentials:
+                print("No credentials provided for IBM Quantum backend.")
+                return False
+            
+            # Check if account is already active
+            try:
+                provider = IBMProvider()
+                if provider:
+                    self.provider = provider
+                    return True
+            except Exception:
+                # Account not active, try to save and load
+                pass
+            
+            # Save account with credentials
+            IBMProvider.save_account(
+                token=self.credentials.token,
+                instance=getattr(self.credentials, 'instance', None),
+                overwrite=True
+            )
+            
+            # Load the provider
+            self.provider = IBMProvider()
             return True
             
-        except ImportError:
-            print("Qiskit not installed. Install qiskit to use IBM Quantum backends.")
+        except ImportError as e:
+            print(f"Failed to import IBM Quantum provider: {e}")
+            self.qiskit_available = False
             return False
         except Exception as e:
-            print(f"Failed to initialize IBM Quantum backend: {str(e)}")
+            print(f"Failed to initialize IBM Quantum backend: {e}")
             return False
-            
+
     def get_available_backends(self) -> List[Dict[str, Any]]:
         """Get list of available IBM Quantum backends."""
         if not self.provider:
@@ -384,71 +400,67 @@ class IBMQuantumBackend:
         except Exception as e:
             raise HardwareBackendError(f"Failed to execute circuit on IBM Quantum: {str(e)}")
             
-    def get_job_result(self, job_or_id: Union[str, Any]) -> BackendResult:
-        """
-        Get the result of a completed job.
+    def get_job_result(self, job) -> BackendResult:
+        """Get results from a quantum job."""
+        if not self.qiskit_available:
+            print("Qiskit not installed. Install qiskit to use IBM Quantum backends.")
+            return BackendResult(
+                success=False,
+                error_message="Qiskit not installed",
+                job_id=str(job) if hasattr(job, '__str__') else "unknown"
+            )
         
-        Args:
-            job_or_id: Either a job ID string or a Qiskit Job object
-            
-        Returns:
-            BackendResult object with the results
-        """
         try:
             from qiskit.providers.jobstatus import JobStatus
             
-            # Get job object if job_or_id is a string
-            job = job_or_id
-            if isinstance(job_or_id, str):
-                if not self.provider:
-                    self.initialize()
-                    if not self.provider:
-                        raise HardwareBackendError("IBM Quantum backend not initialized")
-                # This would require iterating through backends to find the job
-                raise HardwareBackendError("Getting job by ID only is not implemented")
+            job_id = job.job_id() if hasattr(job, 'job_id') and callable(job.job_id) else str(job)
+            backend_name = job.backend().name() if hasattr(job, 'backend') and callable(job.backend) else "unknown"
             
-            # Check job status
+            # Check if job is done
             status = job.status()
             if status != JobStatus.DONE:
-                return BackendResult(
-                    circuit_name="Unknown",
-                    backend_name=job.backend().name(),
-                    job_id=job.job_id(),
+                error_msg = f"Job {job_id} is not completed. Current status: {status.name}"
+                result = BackendResult(
                     success=False,
-                    error_message=f"Job not completed. Status: {status.name}"
+                    error_message=error_msg,
+                    job_id=job_id,
+                    backend_name=backend_name
                 )
-                
-            # Get results
-            result = job.result()
-            counts = result.get_counts()
+                raise HardwareBackendError(error_msg)
+            
+            # Get job results
+            job_result = job.result()
+            
+            # Extract measurement results
+            counts = job_result.get_counts(0) if hasattr(job_result, 'get_counts') else {}
             
             # Get metadata
-            metadata = {
-                'shots': result.results[0].shots,
-                'backend': job.backend().name(),
-                'execution_time': result.time_taken if hasattr(result, 'time_taken') else None
-            }
+            metadata = {}
+            if hasattr(job_result, 'header'):
+                metadata.update(job_result.header)
+            if hasattr(job_result, 'metadata'):
+                metadata.update(job_result.metadata)
+            
+            # Add execution time if available
+            if hasattr(job_result, 'time_taken') and job_result.time_taken:
+                metadata['execution_time'] = job_result.time_taken
             
             return BackendResult(
-                circuit_name="Qiskit Circuit",
-                backend_name=job.backend().name(),
-                job_id=job.job_id(),
-                counts=counts,
                 success=True,
-                execution_time_ms=metadata['execution_time'] if metadata['execution_time'] else None,
-                readout_fidelity=None,  # Would need additional calibration data
-                metadata=metadata,
-                result_url=None  # Would need to construct URL to IBM Quantum Experience
+                counts=counts,
+                job_id=job_id,
+                backend_name=backend_name,
+                metadata=metadata
             )
             
         except Exception as e:
-            return BackendResult(
-                circuit_name="Unknown",
-                backend_name="Unknown",
-                job_id=str(job_or_id) if isinstance(job_or_id, str) else "Unknown",
+            error_msg = str(e)
+            result = BackendResult(
                 success=False,
-                error_message=str(e)
+                error_message=error_msg,
+                job_id=str(job) if hasattr(job, '__str__') else "unknown"
             )
+            raise HardwareBackendError(error_msg)
 
 
 def init_backend_manager() -> BackendManager:
