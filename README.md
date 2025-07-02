@@ -520,9 +520,9 @@ To learn more about quantum computing and resource estimation:
 
 ### Key Concepts & General Reading:
 
-*   Nielsen, M. A., & Chuang, I. L. (2010). *Quantum Computation and Quantum Information: 10th Anniversary Edition*. Cambridge University Press. (The "Bible" of quantum computing)
-*   Preskill, J. (1998). *Quantum Computation lecture notes*. [Caltech](http://www.theory.caltech.edu/~preskill/ph229/) (Excellent introductory material)
-*   Understanding Quantum Volume: [IBM Research Blog](https://research.ibm.com/blog/what-is-quantum-volume)
+*   Nielsen, M. A., & Chuang, I. L. (2010). *Quantum Computation and Quantum Information: 10th Anniversary Edition*. Cambridge University Press.
+*   Preskill, J. (1998). *Quantum Computation lecture notes*. [Caltech](https://www.preskill.caltech.edu/ph229/) (Excellent introductory material)
+*   Measuring Quantum Volume: [IBM Research Blog](https://quantum.cloud.ibm.com/docs/en)
 *   Surface Codes and Fault-Tolerant Quantum Computing: Fowler, A. G., Mariantoni, M., Martinis, J. M., & Cleland, A. N. (2012). Surface codes: Towards practical large-scale quantum computation. *Physical Review A, 86*(3), 032324. ([arXiv:1208.0928](https://arxiv.org/abs/1208.0928))
 
 This list is not exhaustive but provides a good starting point for exploring the field.
