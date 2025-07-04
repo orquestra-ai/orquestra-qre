@@ -1,8 +1,19 @@
-# Supported Quantum Frontends
+# Supported Quantum Frontends & Platform Interfaces
 
-This document lists all the quantum programming frameworks (frontends) that are supported by Orquestra QRE. A frontend refers to any programming language or framework you can use to write quantum circuits that can be analyzed, optimized, and executed through Orquestra QRE.
+This document lists all the quantum programming frameworks (frontends) and platform interfaces that are supported by Orquestra QRE. A frontend refers to any programming language or framework you can use to write quantum circuits, while platform interfaces provide different ways to access and interact with the quantum resource estimation capabilities.
 
-## Currently Supported Frontends
+## Platform Interfaces
+
+| Interface | Status | Description | Launch Command |
+|-----------|--------|-------------|----------------|
+| **🖥️ Desktop App (Tauri)** | ✅ **Fully Operational** | Native cross-platform desktop application | `npm run tauri:dev` |
+| **📊 Streamlit Dashboard** | ✅ Fully Operational | Interactive web dashboard with visualizations | `streamlit run streamlit_app.py` |
+| **📓 Jupyter Notebooks** | ✅ Fully Operational | Research environment for analysis | `jupyter notebook` |
+| **⌨️ CLI Interface** | ✅ Fully Operational | Command-line tools for automation | `python -m orquestra_qre.cli` |
+| **🐍 Python SDK** | ✅ Fully Operational | Programmatic API access | `from orquestra_qre import *` |
+| **🌐 Web Interface** | ✅ Fully Operational | React/TypeScript frontend | `python simple_run.py` |
+
+## Quantum Programming Frontends
 
 | Frontend | Integration Status | Notes |
 |----------|-------------------|-------|
@@ -67,3 +78,48 @@ Orquestra QRE is designed to be extensible. To add support for a new frontend:
 5. Update this document to include the new frontend
 
 For more information on implementing new frontends, see the [development guide](./CONTRIBUTING.md).
+
+## Desktop Application Usage
+
+The **Tauri desktop application** provides a native, cross-platform interface for quantum resource estimation. 
+
+### Features
+- **Complete QuantumOrchestra Interface**: Full access to all quantum resource estimation features
+- **Native Performance**: Optimized desktop performance with Rust backend
+- **Cross-Platform**: Runs on Windows, macOS, and Linux
+- **Offline Capable**: Works without internet connection for local calculations
+- **File System Integration**: Save and load quantum circuits and results
+
+### Getting Started with Desktop App
+
+```bash
+# Prerequisites: Node.js, npm, and Rust
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run tauri:dev
+
+# Build for production
+npm run tauri:build
+```
+
+### Desktop App vs Web Interface
+
+| Feature | Desktop App | Web Interface |
+|---------|------------|---------------|
+| **Performance** | ✅ Native speed | ⚡ Browser-dependent |
+| **Offline Usage** | ✅ Fully offline | ❌ Requires server |
+| **File Access** | ✅ Native file system | ⚠️ Limited downloads |
+| **Installation** | ⚠️ Requires build | ✅ Just open browser |
+| **Updates** | ⚠️ Manual rebuild | ✅ Automatic |
+| **Resource Usage** | ✅ Lower memory | ⚠️ Browser overhead |
+
+### Interface Components
+
+The desktop app includes all the same components as the web interface:
+- **Circuit Designer**: Build and modify quantum circuits
+- **Resource Estimator**: Calculate quantum resource requirements
+- **Provider Comparison**: Compare across quantum hardware vendors
+- **Visualization Tools**: Interactive charts and circuit diagrams
+- **Export Capabilities**: Save results in multiple formats

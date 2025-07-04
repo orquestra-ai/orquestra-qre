@@ -405,6 +405,8 @@ class IBMQuantumBackend:
         if not self.qiskit_available:
             print("Qiskit not installed. Install qiskit to use IBM Quantum backends.")
             return BackendResult(
+                circuit_name="unknown",
+                backend_name="unknown",
                 success=False,
                 error_message="Qiskit not installed",
                 job_id=str(job) if hasattr(job, '__str__') else "unknown"
@@ -421,10 +423,11 @@ class IBMQuantumBackend:
             if status != JobStatus.DONE:
                 error_msg = f"Job {job_id} is not completed. Current status: {status.name}"
                 result = BackendResult(
+                    circuit_name="unknown",
+                    backend_name=backend_name,
                     success=False,
                     error_message=error_msg,
-                    job_id=job_id,
-                    backend_name=backend_name
+                    job_id=job_id
                 )
                 raise HardwareBackendError(error_msg)
             
@@ -446,16 +449,19 @@ class IBMQuantumBackend:
                 metadata['execution_time'] = job_result.time_taken
             
             return BackendResult(
+                circuit_name="unknown",
+                backend_name=backend_name,
                 success=True,
                 counts=counts,
                 job_id=job_id,
-                backend_name=backend_name,
                 metadata=metadata
             )
             
         except Exception as e:
             error_msg = str(e)
             result = BackendResult(
+                circuit_name="unknown",
+                backend_name="unknown",
                 success=False,
                 error_message=error_msg,
                 job_id=str(job) if hasattr(job, '__str__') else "unknown"
